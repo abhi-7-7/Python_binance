@@ -26,8 +26,13 @@ class OrderResult:
     timestamp:    int          # Unix ms from Binance
 
     def display(self) -> str:
-        """Human-readable summary for terminal output."""
-        price_str = f"${self.avg_price:,.4f}" if self.avg_price else "pending"
+        if self.avg_price > 0:
+            price_str = f"${self.avg_price:,.4f}"
+        elif self.order_type == "MARKET":
+            price_str = "at market (testnet)"
+        else:
+            price_str = "pending fill"
+
         return (
             f"\n{'─'*44}\n"
             f"  Order placed successfully\n"

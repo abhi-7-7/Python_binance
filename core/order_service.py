@@ -142,12 +142,12 @@ class OrderService:
         return result
 
     def _map_response(self, raw: dict, request: OrderRequest) -> OrderResult:
-        """Convert the raw Binance JSON dict into a typed OrderResult."""
-        # origQty = what you asked for; executedQty = what filled so far (0 on placement)
         quantity = float(raw.get("origQty") or raw.get("executedQty") or 0)
 
-        # avgPrice is 0 until filled — fall back to the limit price if set
-        avg_price = float(raw.get("avgPrice") or raw.get("price") or 0)
+        # Must cast to float first — "0.00000" is a truthy string but a zero value
+        avg_price  = float(raw.get("avgPrice") or 0)
+        limit_price = float(raw.get("price") or 0)
+        display_price = avg_price if avg_price > 0 else limit_price
 
         return OrderResult(
             order_id     = raw.get("orderId", 0),
@@ -156,6 +156,6 @@ class OrderService:
             side         = raw.get("side", request.side),
             order_type   = raw.get("type", request.order_type),
             executed_qty = quantity,
-            avg_price    = avg_price,
+            avg_price    = display_price,
             timestamp    = raw.get("updateTime", 0),
-    )
+        )
