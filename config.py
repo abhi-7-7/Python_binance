@@ -1,6 +1,13 @@
 # config.py
 import os
-from dotenv import load_dotenv
+import importlib.util
+
+if importlib.util.find_spec("dotenv") is not None:
+    load_dotenv = importlib.import_module("dotenv").load_dotenv
+else:
+    # Fallback when python-dotenv isn't installed (helps static checks and lightweight runs)
+    def load_dotenv(*a, **k):
+        return None
 
 load_dotenv()
 

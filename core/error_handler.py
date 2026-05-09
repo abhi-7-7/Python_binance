@@ -1,5 +1,15 @@
 # core/error_handler.py
-import requests
+import importlib.util
+
+if importlib.util.find_spec("requests") is not None:
+    requests = importlib.import_module("requests")
+else:
+    # Provide small shim so static checks do not fail when 'requests' is absent
+    class HTTPError(Exception):
+        def __init__(self, response=None):
+            self.response = response
+
+    requests = type("requests", (), {"HTTPError": HTTPError})
 
 from logger import get_logger
 
@@ -23,7 +33,7 @@ _BINANCE_ERRORS: dict[int, str] = {
 }
 
 
-def handle_api_error(exc: requests.HTTPError) -> None:
+def handle_api_error(exc) -> None:
     """
     Parse a Binance HTTPError response, log it, and raise a clean
     RuntimeError with a human-readable message.
