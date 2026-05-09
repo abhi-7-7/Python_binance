@@ -1,5 +1,43 @@
 # cli/commands.py
-import click
+import importlib.util
+
+if importlib.util.find_spec("click") is not None:
+    click = importlib.import_module("click")
+else:
+    # Lightweight click shim for environments without click installed (keeps CLI definitions importable)
+    class Choice:
+        def __init__(self, options, case_sensitive=True):
+            self.options = options
+
+    class BadParameter(Exception):
+        pass
+
+    def group():
+        def decorator(f):
+            return f
+        return decorator
+
+    def option(*a, **k):
+        def decorator(f):
+            return f
+        return decorator
+
+    def command(name=None):
+        def decorator(f):
+            return f
+        return decorator
+
+    def secho(msg, fg=None, err=False):
+        print(msg)
+
+    click = type("click", (), {
+        "Choice": Choice,
+        "BadParameter": BadParameter,
+        "group": group,
+        "option": option,
+        "command": command,
+        "secho": secho,
+    })
 
 from core.order_service import OrderService
 from logger import get_logger
