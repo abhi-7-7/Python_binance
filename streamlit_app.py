@@ -3,6 +3,7 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("streamlit") is not None:
@@ -42,7 +43,12 @@ else:
         def divider(self, *a, **k):
             return None
         def columns(self, *a, **k):
-            n = len(a[0]) if a and isinstance(a[0], (list, tuple)) else 1
+            if a and isinstance(a[0], int):
+                n = a[0]
+            elif a and isinstance(a[0], (list, tuple)):
+                n = len(a[0])
+            else:
+                n = 1
             return tuple(_DummyColumn() for _ in range(n))
         def metric(self, *a, **k):
             return None

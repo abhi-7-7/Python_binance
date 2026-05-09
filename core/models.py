@@ -41,7 +41,7 @@ class OrderResult:
             f"  Symbol     : {self.symbol}\n"
             f"  Side       : {self.side}\n"
             f"  Type       : {self.order_type}\n"
-            f"  Quantity   : {self.executed_qty}\n"
+            f"  Executed Qty: {self.executed_qty}\n"
             f"  Avg Price  : {price_str}\n"
             f"  Status     : {self.status}\n"
             f"{'─'*44}\n"

@@ -1,14 +1,22 @@
 # core/order_service.py
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("requests") is not None:
     requests = importlib.import_module("requests")
 else:
+    class RequestException(Exception):
+        pass
+
     class HTTPError(Exception):
         def __init__(self, response=None):
             self.response = response
 
-    requests = type("requests", (), {"HTTPError": HTTPError})
+    requests = type(
+        "requests",
+        (),
+        {"HTTPError": HTTPError, "RequestException": RequestException},
+    )
 
 from api.binance_client import BinanceClient
 from core import error_handler, validator
@@ -69,6 +77,15 @@ class OrderService:
             log.error("Order FAILED | symbol=%s side=%s type=%s",
                       request.symbol, request.side, request.order_type)
             error_handler.handle_api_error(exc)
+        except requests.RequestException as exc:
+            log.error(
+                "Network error while placing order | symbol=%s side=%s type=%s",
+                request.symbol,
+                request.side,
+                request.order_type,
+                exc_info=True,
+            )
+            raise RuntimeError("Network error while contacting Binance.") from exc
 
         result = self._map_response(raw, request)
         log.info("Order SUCCESS | id=%s symbol=%s side=%s type=%s qty=%s price=%s status=%s",

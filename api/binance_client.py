@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import time
 import urllib.parse
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("requests") is not None:
@@ -12,6 +13,9 @@ else:
     class HTTPError(Exception):
         def __init__(self, response=None):
             self.response = response
+
+    class RequestException(Exception):
+        pass
 
     class DummyResponse:
         status_code = 0
@@ -27,7 +31,11 @@ else:
         def post(self, *a, **k):
             return DummyResponse()
 
-    requests = type("requests", (), {"Session": DummySession, "HTTPError": HTTPError})
+    requests = type(
+        "requests",
+        (),
+        {"Session": DummySession, "HTTPError": HTTPError, "RequestException": RequestException},
+    )
 
 import config
 from api import endpoints

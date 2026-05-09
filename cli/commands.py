@@ -1,4 +1,5 @@
 # cli/commands.py
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("click") is not None:
@@ -12,8 +13,14 @@ else:
     class BadParameter(Exception):
         pass
 
+    def _command_decorator(name=None):
+        def decorator(f):
+            return f
+        return decorator
+
     def group():
         def decorator(f):
+            f.command = _command_decorator
             return f
         return decorator
 
@@ -23,9 +30,7 @@ else:
         return decorator
 
     def command(name=None):
-        def decorator(f):
-            return f
-        return decorator
+        return _command_decorator(name)
 
     def secho(msg, fg=None, err=False):
         print(msg)
@@ -43,6 +48,16 @@ from core.order_service import OrderService
 from logger import get_logger
 
 log = get_logger(__name__)
+
+
+def _print_request_summary(symbol: str, side: str, order_type: str, quantity: float, price=None) -> None:
+    price_str = "market" if price is None else f"{price}"
+    click.secho("Order request summary:")
+    click.secho(f"  Symbol: {symbol.strip().upper()}")
+    click.secho(f"  Side: {side.strip().upper()}")
+    click.secho(f"  Type: {order_type}")
+    click.secho(f"  Quantity: {quantity}")
+    click.secho(f"  Price: {price_str}")
 
 
 @click.group()
@@ -69,6 +84,7 @@ def market_order(symbol: str, side: str, quantity: float):
     """
     service = OrderService()
     try:
+        _print_request_summary(symbol, side, "MARKET", quantity)
         result = service.place_market_order(symbol, side, quantity)
         click.secho(result.display(), fg="green")
     except ValueError as e:
@@ -76,6 +92,7 @@ def market_order(symbol: str, side: str, quantity: float):
         raise click.BadParameter(str(e))
     except RuntimeError as e:
         log.error("Order failed: %s", e)
+        click.secho("Order failed.", fg="red", err=True)
         click.secho(f"\n  Error: {e}\n", fg="red", err=True)
         raise SystemExit(1)
 
@@ -95,6 +112,7 @@ def limit_order(symbol: str, side: str, quantity: float, price: float):
     """
     service = OrderService()
     try:
+        _print_request_summary(symbol, side, "LIMIT", quantity, price)
         result = service.place_limit_order(symbol, side, quantity, price)
         click.secho(result.display(), fg="green")
     except ValueError as e:
@@ -102,5 +120,6 @@ def limit_order(symbol: str, side: str, quantity: float, price: float):
         raise click.BadParameter(str(e))
     except RuntimeError as e:
         log.error("Order failed: %s", e)
+        click.secho("Order failed.", fg="red", err=True)
         click.secho(f"\n  Error: {e}\n", fg="red", err=True)
         raise SystemExit(1)

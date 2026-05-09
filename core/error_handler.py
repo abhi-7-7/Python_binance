@@ -1,4 +1,5 @@
 # core/error_handler.py
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("requests") is not None:

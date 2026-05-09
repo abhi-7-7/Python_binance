@@ -4,6 +4,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("flask") is not None:

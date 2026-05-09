@@ -1,5 +1,6 @@
 # config.py
 import os
+import importlib
 import importlib.util
 
 if importlib.util.find_spec("dotenv") is not None:
